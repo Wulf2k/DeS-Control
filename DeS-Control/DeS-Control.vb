@@ -1,6 +1,8 @@
 ﻿Imports PS3Lib
 
 
+
+
 Public Class DeSCtrl
 
 
@@ -11,15 +13,16 @@ Public Class DeSCtrl
 
     'Dim CtrlPtr As UInteger = &H10F3A1A0& - TMAPI?
     Dim CtrlPtr As UInteger = &H10F3A160&
-    Dim cllCMDs As String()
     Dim repeatCount As Integer
 
 
     Dim DoNotQuitPtr As UInteger = &H386001EC
 
 
+    Dim QueuedInput As New List(Of QdInput)
 
-    Dim storedCMD(5) As UInteger
+    'Dim QueuedInput(25) As QdInput
+    'Dim Queue As Integer = 0
 
 
     Private WithEvents refTimerPress As New System.Windows.Forms.Timer()
@@ -36,6 +39,8 @@ Public Class DeSCtrl
         updTimer.Interval = 1000
         updTimer.Enabled = True
         updTimer.Start()
+
+        'play()
     End Sub
     Private Sub btnConnect_Click(sender As Object, e As EventArgs) Handles btnConnect.Click
 
@@ -50,10 +55,10 @@ Public Class DeSCtrl
                     'PS3.CCAPI.Notify(11, "Attached")
                     txtPS3IP.Enabled = False
                 Else
-                    MsgBox("Failed to attach")
+                    txtChat.Text = "Failed to attach"
                 End If
             Else
-                MsgBox("No connection")
+                txtChat.Text = "No connection"
             End If
 
 
@@ -73,6 +78,14 @@ Public Class DeSCtrl
         End If
     End Sub
 
+    Private Sub PushQ(ByRef buttons As UInteger, RStickLR As Single, RStickUD As Single, LStickLR As Single, _
+                      LStickUD As Single, time As UInteger)
+        QueuedInput.Add(New QdInput() With {.buttons = buttons, .RstickLR = RStickLR, .RstickUD = RStickUD, _
+                                            .LStickLR = LStickLR, .LStickUD = LStickUD, .time = time})
+    End Sub
+    Private Sub PopQ()
+        QueuedInput.RemoveAt(0)
+    End Sub
 
     Private Function getMemByteArray(ByRef loc As UInteger, ByVal count As Integer) As Byte()
         Dim byt(count - 1) As Byte
@@ -133,41 +146,59 @@ Public Class DeSCtrl
         UInteger2Four(&HC4587C, &HA00302CA&)
     End Sub
 
-    Private Sub press(ByVal interval)
+    Private Sub press()
+        If QueuedInput.Count > 0 Then
 
-        refTimerPress.Interval = interval
-        refTimerPress.Enabled = True
-        refTimerPress.Start()
+            UInteger2Four(CtrlPtr + &H2F8, QueuedInput(0).buttons)
+            Float2Four(CtrlPtr + &H3C0, QueuedInput(0).RstickLR)
+            Float2Four(CtrlPtr + &H3C4, QueuedInput(0).RstickUD)
+            Float2Four(CtrlPtr + &H3C8, QueuedInput(0).LStickLR)
+            Float2Four(CtrlPtr + &H3CC, QueuedInput(0).LStickUD)
+
+            refTimerPress.Interval = QueuedInput(0).time
+            refTimerPress.Enabled = True
+            refTimerPress.Start()
+
+            PopQ()
+            UInteger2Four(&H2A6398, &H60000000&)
+        Else
+            Dim buttons = 0
+            If chkHoldO.Checked Then buttons = (buttons Or &H20)
+            If chkHoldL1.Checked Then buttons = (buttons Or &H4)
+
+            UInteger2Four(CtrlPtr + &H2F8, buttons)
+            Float2Four(CtrlPtr + &H3C0, 0)
+            Float2Four(CtrlPtr + &H3C4, 0)
+            Float2Four(CtrlPtr + &H3C8, 0)
+            Float2Four(CtrlPtr + &H3CC, 0)
+        End If
+
     End Sub
     Private Sub refTimerPress_Tick() Handles refTimerPress.Tick
 
-        Dim buttons As UInteger
-        buttons = 0
 
-        If chkHoldO.Checked Then buttons = buttons Or &H20
-        If chkHoldL1.Checked Then buttons = buttons Or &H4
 
-        UInteger2Four(CtrlPtr + &H2F8, buttons)
+        If chkCMDPause.Checked = True Then
+            UInteger2Four(&H2A6398, &H4954EA28&)
+        End If
 
-        Float2Four(CtrlPtr + &H3C0, 0)
-        Float2Four(CtrlPtr + &H3C4, 0)
-        Float2Four(CtrlPtr + &H3C8, 0)
-        Float2Four(CtrlPtr + &H3CC, 0)
-
-        refTimerPress.Enabled = False
-
+        press()
+        btnConnect.PerformClick()
     End Sub
-    Private Sub play(ByVal interval)
-        refTimerPlay.Interval = interval
+    Private Sub play()
+        refTimerPlay.Interval = 5000
         refTimerPlay.Enabled = True
         refTimerPlay.Start()
-
-        UInteger2Four(&H2A6398, &H60000000&)
     End Sub
     Private Sub refTimerPlay_Tick() Handles refTimerPlay.Tick
-        refTimerPlay.Enabled = False
-        If chkCMDPause.Checked = True Then UInteger2Four(&H2A6398, &H4954EA28&)
         btnConnect.PerformClick()
+        If QueuedInput.Count > 0 Then
+            press()
+        Else
+            refTimerPlay.Enabled = False
+        End If
+        txtChat.Text = QueuedInput.Count
+
     End Sub
 
     Private Sub updTimer_Tick() Handles updTimer.Tick
@@ -175,18 +206,12 @@ Public Class DeSCtrl
     End Sub
 
 
-    Private Sub PS3Controller(buttons As UInteger, RLR As Single, RUD As Single, LLR As Single, LUD As Single, hold As Integer, unpause As Integer)
+    Private Sub PS3Controller(buttons As UInteger, RLR As Single, RUD As Single, LLR As Single, LUD As Single, hold As Integer)
         If chkHoldO.Checked Then buttons = (buttons Or &H20)
         If chkHoldL1.Checked Then buttons = (buttons Or &H4)
 
-        UInteger2Four(CtrlPtr + &H2F8, buttons)
-        Float2Four(CtrlPtr + &H3C0, RLR)
-        Float2Four(CtrlPtr + &H3C4, RUD)
-        Float2Four(CtrlPtr + &H3C8, LLR)
-        Float2Four(CtrlPtr + &H3CC, LUD)
-
-        press(hold)
-        play(unpause)
+        PushQ(buttons, RLR, RUD, LLR, LUD, hold)
+        If refTimerPress.Enabled = False Then refTimerPress.Enabled = True
 
     End Sub
 
@@ -205,85 +230,107 @@ Public Class DeSCtrl
     Private Sub execCMD(cmd As String)
 
         REM PS3Controller ( buttons, R stick left/right, R stick up/down, L stick left/right, L stick up/down, _
-        REM                 hold button length, unpause timer)
+        REM                 hold button length)
 
         Select Case cmd
             Case "wf"
-                PS3Controller(0, 0, 0, 0, 1, 1000, 1000)
+                PS3Controller(0, 0, 0, 0, 1, 1000)
             Case "wl"
-                PS3Controller(0, 0, 0, -1, 0, 1000, 1000)
+                PS3Controller(0, 0, 0, -1, 0, 1000)
             Case "wb"
-                PS3Controller(0, 0, 0, 0, -1, 1000, 1000)
+                PS3Controller(0, 0, 0, 0, -1, 1000)
             Case "wr"
-                PS3Controller(0, 0, 0, 1, 0, 1000, 1000)
+                PS3Controller(0, 0, 0, 1, 0, 1000)
 
             Case "wfl"
-                PS3Controller(0, 0, 0, -1, 1, 1000, 1000)
+                PS3Controller(0, 0, 0, -1, 1, 1000)
             Case "wfr"
-                PS3Controller(0, 0, 0, 1, 1, 1000, 1000)
+                PS3Controller(0, 0, 0, 1, 1, 1000)
             Case "wbl"
-                PS3Controller(0, 0, 0, -1, -1, 1000, 1000)
+                PS3Controller(0, 0, 0, -1, -1, 1000)
             Case "wbr"
-                PS3Controller(0, 0, 0, 1, -1, 1000, 1000)
+                PS3Controller(0, 0, 0, 1, -1, 1000)
 
             Case "rf"
-                PS3Controller(&H20&, 0, 0, 0, 1, 300, 1500)
+                PS3Controller(0, 0, 0, 0, 1, 50)
+                PS3Controller(&H20&, 0, 0, 0, 1, 300)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "rl"
-                PS3Controller(&H20&, 0, 0, -1, 0, 300, 1500)
+                PS3Controller(0, 0, 0, -1, 0, 50)
+                PS3Controller(&H20&, 0, 0, -1, 0, 300)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "rb"
-                PS3Controller(&H20&, 0, 0, 0, -1, 300, 1500)
+                PS3Controller(0, 0, 0, 0, -1, 50)
+                PS3Controller(&H20&, 0, 0, 0, -1, 300)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "rr"
-                PS3Controller(&H20&, 0, 0, 1, 0, 300, 1500)
+                PS3Controller(0, 0, 0, 1, 0, 50)
+                PS3Controller(&H20&, 0, 0, 1, 0, 300)
+                PS3Controller(0, 0, 0, 0, 0, 200)
 
             Case "lu"
-                PS3Controller(0, 0, 1, 0, 0, 150, 150)
+                PS3Controller(0, 0, 1, 0, 0, 150)
             Case "ll"
-                PS3Controller(0, -1, 0, 0, 0, 150, 150)
+                PS3Controller(0, -1, 0, 0, 0, 150)
             Case "lr"
-                PS3Controller(0, 1, 0, 0, 0, 150, 150)
+                PS3Controller(0, 1, 0, 0, 0, 150)
             Case "ld"
-                PS3Controller(0, 0, -1, 0, 0, 150, 150)
+                PS3Controller(0, 0, -1, 0, 0, 150)
 
             Case "du"
-                PS3Controller(&H100000, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H100000, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "dd"
-                PS3Controller(&H400000, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H400000, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "dl"
-                PS3Controller(&H800000, 0, 0, 0, 0, 150, 1000)
+                PS3Controller(&H800000, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "dr"
-                PS3Controller(&H200000, 0, 0, 0, 0, 150, 1000)
+                PS3Controller(&H200000, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
 
             Case "sel"
-                PS3Controller(&H10000, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H10000, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "start"
-                PS3Controller(&H80000, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H80000, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "tri"
-                PS3Controller(&H10, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H10, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "sq"
-                PS3Controller(&H80, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H80, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "o"
-                PS3Controller(&H20, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H20, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "x"
                 REM Check if menu selected is Quit Game
                 If Four2UInteger(DoNotQuitPtr) = &H4076 Then
-                    PS3Controller(&H100000, 0, 0, 0, 0, 150, 500)
+                    PS3Controller(&H100000, 0, 0, 0, 0, 150)
+                    PS3Controller(0, 0, 0, 0, 0, 200)
                 Else
-                    PS3Controller(&H40, 0, 0, 0, 0, 150, 500)
+                    PS3Controller(&H40, 0, 0, 0, 0, 150)
+                    PS3Controller(0, 0, 0, 0, 0, 200)
                 End If
 
             Case "l2"
-                PS3Controller(&H1, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H1, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "l1"
-                PS3Controller(&H4, 0, 0, 0, 0, 500, 500)
+                PS3Controller(&H4, 0, 0, 0, 0, 500)
             Case "r2"
-                PS3Controller(&H2, 0, 0, 0, 0, 150, 1000)
+                PS3Controller(&H2, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
             Case "r1"
-                PS3Controller(&H8, 0, 0, 0, 0, 150, 750)
+                PS3Controller(&H8, 0, 0, 0, 0, 150)
+                PS3Controller(0, 0, 0, 0, 0, 200)
 
             Case "l3"
-                PS3Controller(&H20000, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H20000, 0, 0, 0, 0, 150)
             Case "r3"
-                PS3Controller(&H40000, 0, 0, 0, 0, 150, 500)
+                PS3Controller(&H40000, 0, 0, 0, 0, 150)
 
             Case "holdo"
                 chkHoldO.Checked = Not chkHoldO.Checked
@@ -306,7 +353,7 @@ Public Class DeSCtrl
                 End If
                 UInteger2Four(CtrlPtr + &H2F8, buttons)
             Case "h"
-                PS3Controller(0, 0, 0, 0, 0, 10, 500)
+                PS3Controller(0, 0, 0, 0, 0, 500)
 
 
             Case "pause"
@@ -316,33 +363,33 @@ Public Class DeSCtrl
                 chkCMDPause.Checked = False
                 UInteger2Four(&H2A6398, &H60000000&)
             Case "flong"
-                PS3Controller(0, 0, 0, 0, 1, 4000, 4000)
+                PS3Controller(0, 0, 0, 0, 1, 4000)
 
             Case "reconnect"
                 btnConnect.PerformClick()
 
             Case "wfx3"
-                PS3Controller(0, 0, 0, 0, 1, 3000, 3000)
+                PS3Controller(0, 0, 0, 0, 1, 3000)
             Case "llx3"
-                PS3Controller(0, -1, 0, 0, 0, 450, 450)
+                PS3Controller(0, -1, 0, 0, 0, 450)
             Case "lrx3"
-                PS3Controller(0, 1, 0, 0, 0, 450, 450)
+                PS3Controller(0, 1, 0, 0, 0, 450)
             Case "hx2"
-                PS3Controller(0, 0, 0, 0, 0, 10, 1000)
+                PS3Controller(0, 0, 0, 0, 0, 1000)
             Case "hx3"
-                PS3Controller(0, 0, 0, 0, 0, 10, 1500)
+                PS3Controller(0, 0, 0, 0, 0, 1500)
 
             Case "hwf"
-                PS3Controller(0, 0, 0, 0, 0.5, 1000, 1000)
+                PS3Controller(0, 0, 0, 0, 0.5, 1000)
             Case "hwl"
-                PS3Controller(0, 0, 0, -0.5, 0, 1000, 1000)
+                PS3Controller(0, 0, 0, -0.5, 0, 1000)
             Case "hwb"
-                PS3Controller(0, 0, 0, 0, -0.5, 1000, 1000)
+                PS3Controller(0, 0, 0, 0, -0.5, 1000)
             Case "hwr"
-                PS3Controller(0, 0, 0, 0.5, 0, 1000, 1000)
+                PS3Controller(0, 0, 0, 0.5, 0, 1000)
 
             Case "fr1"
-                PS3Controller(&H8, 0, 0, 0, 1, 250, 1000)
+                PS3Controller(&H8, 0, 0, 0, 1, 250)
 
 
         End Select
@@ -380,9 +427,18 @@ Public Class DeSCtrl
 
 
             Next
+
         Catch ex As Exception
-            MsgBox(ex.Message)
+            txtChat.Text = ex.Message
         End Try
 
     End Sub
+End Class
+Public Class QdInput
+    Public buttons As UInteger
+    Public RstickLR As Single
+    Public RstickUD As Single
+    Public LStickLR As Single
+    Public LStickUD As Single
+    Public time As UInteger
 End Class
