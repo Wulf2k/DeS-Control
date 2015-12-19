@@ -15,16 +15,14 @@ Public Class DeSCtrl
     Dim CtrlPtr As UInteger = &H10F3A160&
     Dim repeatCount As Integer
 
+    Dim collectVotes As Boolean
 
     Dim DoNotQuitPtr As UInteger = &H386001EC
 
-
     Dim QueuedInput As New List(Of QdInput)
+    Dim votes As New List(Of Votes)
 
-    'Dim QueuedInput(25) As QdInput
-    'Dim Queue As Integer = 0
-
-
+    Private WithEvents refTimerVote As New System.Windows.Forms.Timer()
     Private WithEvents refTimerPress As New System.Windows.Forms.Timer()
     Private WithEvents refTimerPlay As New System.Windows.Forms.Timer()
     Private WithEvents updTimer As New System.Windows.Forms.Timer()
@@ -34,34 +32,25 @@ Public Class DeSCtrl
         PS3.ChangeAPI(SelectAPI.TargetManager)
 
         wb.Navigate("http://www.twitch.tv/wulf2k/chat?popout=")
-        REM wkb.Navigate("http://www.twitch.tv/wulf2k/chat?popout=")
 
         updTimer.Interval = 1000
         updTimer.Enabled = True
         updTimer.Start()
-
-        'play()
     End Sub
     Private Sub btnConnect_Click(sender As Object, e As EventArgs) Handles btnConnect.Click
-
-
 
         If rbCCAPI.Checked Then
             PS3.ChangeAPI(SelectAPI.ControlConsole)
 
             If PS3.ConnectTarget(txtPS3IP.Text) Then
-                'PS3.CCAPI.Notify(11, "Connected")
                 If PS3.AttachProcess() Then
-                    'PS3.CCAPI.Notify(11, "Attached")
                     txtPS3IP.Enabled = False
                 Else
-                    txtChat.Text = "Failed to attach"
+                    txtChat.Text += "Failed to attach" & Environment.NewLine
                 End If
             Else
-                txtChat.Text = "No connection"
+                txtChat.Text += "No connection" & Environment.NewLine
             End If
-
-
         Else
             PS3.ChangeAPI(SelectAPI.TargetManager)
             If PS3.TMAPI.ConnectTarget(txtPS3IP.Text) Then
@@ -69,11 +58,9 @@ Public Class DeSCtrl
                     txtPS3IP.Enabled = False
                 Else
                     txtPS3IP.Enabled = True
-                    REM MsgBox("Failed to attach")
                 End If
             Else
                 txtPS3IP.Enabled = True
-                REM MsgBox("No TMAPI connection")
             End If
         End If
     End Sub
@@ -175,9 +162,6 @@ Public Class DeSCtrl
 
     End Sub
     Private Sub refTimerPress_Tick() Handles refTimerPress.Tick
-
-
-
         If chkCMDPause.Checked = True Then
             UInteger2Four(&H2A6398, &H4954EA28&)
         End If
@@ -197,8 +181,113 @@ Public Class DeSCtrl
         Else
             refTimerPlay.Enabled = False
         End If
-        txtChat.Text = QueuedInput.Count
+    End Sub
+    Private Sub refTimerVote_Tick() Handles refTimerVote.Tick
+        collectVotes = Not collectVotes
 
+        If collectVotes Then
+            txtChat.Text = "Collecting votes." & Environment.NewLine
+        Else
+            txtChat.Text += "Done collecting votes." & Environment.NewLine
+            For i = 0 To votes.Count - 1
+                txtChat.Text += votes.Item(i).username & " - " & votes.Item(i).command & Environment.NewLine
+            Next
+            TallyVotes()
+        End If
+    End Sub
+
+    Private Sub TallyVotes()
+        Dim cllCll As New List(Of String())
+
+        Dim cllMoveCMD As String()
+        Dim cllRollCMD As String()
+        Dim cllCamCMD As String()
+        Dim cllBtnCMD As String()
+        Dim cllCombatCMD As String()
+        Dim cllToggleCMD As String()
+        Dim cllSysCMD As String()
+
+        Dim voteCat(7) As Integer
+        Dim voteTally As Integer
+        Dim voteWin As Integer
+
+        Dim subvoteTally As Integer
+        Dim subvoteWin As Integer
+
+
+        Dim catVotes(7) As List(Of Votes)
+        Dim subcatVotes As New List(Of Votes)
+
+        For i = 0 To 6
+            catVotes(i) = New List(Of Votes)
+        Next
+
+        cllMoveCMD = {"wf", "wl", "wb", "wr", "wfl", "wfr", "wbl", "wbr", "flong", "hwf", "hwl", "hwr", "hwb"}
+        cllRollCMD = {"rf", "rl", "rb", "rr"}
+        cllCamCMD = {"lu", "ll", "lr", "ld", "r3"}
+        cllBtnCMD = {"sel", "start", "tri", "sq", "o", "x", "l3"}
+        cllCombatCMD = {"l2", "l1", "r2", "r1", "h", "fr1"}
+        cllToggleCMD = {"holdo", "l1t"}
+        cllSysCMD = {"pause", "nopause"}
+
+        cllCll.Add(cllMoveCMD)
+        cllCll.Add(cllRollCMD)
+        cllCll.Add(cllCamCMD)
+        cllCll.Add(cllBtnCMD)
+        cllCll.Add(cllCombatCMD)
+        cllCll.Add(cllToggleCMD)
+        cllCll.Add(cllSysCMD)
+
+
+        REM Find winning category of votes
+        For i = 0 To votes.Count - 1
+            For j = 0 To cllCll.Count - 1
+                If cllCll.Item(j).Contains(votes.Item(i).command) Then
+                    voteCat(j) += 1
+                    catVotes(j).Add(votes.Item(i))
+                End If
+            Next
+        Next
+
+        For i = 0 To 6
+            If voteCat(i) > voteTally Then
+                voteWin = i
+                voteTally = voteCat(i)
+            End If
+        Next
+
+
+        REM Work with reduced set of votes here from winning category
+        ReDim voteCat(cllCll.Item(voteWin).Count)
+
+        For i = 0 To catVotes(voteWin).Count - 1
+            voteCat(Array.IndexOf(cllCll.Item(voteWin), catVotes(voteWin).Item(i).command)) += 1
+        Next
+
+        For i = 0 To voteCat.Count - 1
+            If voteCat(i) > subvoteTally Then
+                subvoteWin = i
+                subvoteTally = voteCat(i)
+
+                txtChat.Text += voteCat(i) & Environment.NewLine
+            End If
+        Next
+
+        For i = 0 To votes.Count - 1
+            If votes.Item(i).command = cllCll.Item(voteWin)(subvoteWin) Then
+                subcatVotes.Add(votes.Item(i))
+            End If
+        Next
+
+        subcatVotes.Sort(Function(x, y) x.cmdmulti.CompareTo(y.cmdmulti))
+
+        For i = 0 To subcatVotes.Item(subcatVotes.Count / 2).cmdmulti
+            execCMD(subcatVotes.Item(0).command)
+        Next
+
+        txtChat.Text += catVotes(voteWin).Count & Environment.NewLine
+
+        votes.Clear()
     End Sub
 
     Private Sub updTimer_Tick() Handles updTimer.Tick
@@ -223,10 +312,67 @@ Public Class DeSCtrl
     End Function
     Private Function parseChat(ByVal txt As String) As String()
         txt = Microsoft.VisualBasic.Right(txt, txt.Length - InStr(2, txt, Chr(13)))
+        If Asc(txt(0)) = 10 Then txt = Microsoft.VisualBasic.Right(txt, txt.Length - 1)
 
+        If Microsoft.VisualBasic.Left(txt, InStr(1, txt, ":") - 1) = "Wulf2k" Then
 
-        Return {Microsoft.VisualBasic.Left(txt, InStr(7, txt, ":") - 1), Microsoft.VisualBasic.Right(txt, txt.Length - InStr(7, txt, ":") - 1)}
+        Else
+            txt = Microsoft.VisualBasic.Right(txt, txt.Length - InStr(2, txt, " "))
+            txt = Microsoft.VisualBasic.Right(txt, txt.Length - InStr(2, txt, " "))
+        End If
+
+        Return {Microsoft.VisualBasic.Left(txt, InStr(1, txt, ":") - 1).ToLower, Microsoft.VisualBasic.Right(txt, txt.Length - InStr(1, txt, ":") - 1).ToLower}
     End Function
+
+    Private Sub ProcessCMD(entry() As String)
+
+        Dim CllCMDList As String()
+
+        CllCMDList = {"wf", "wl", "wb", "wr", "wfl", "wfr", "wbl", "wbr", "flong", "hwf", "hwl", "hwr", "hwb", _
+                        "rf", "rl", "rb", "rr", _
+                        "lu", "ll", "lr", "ld", "r3", _
+                        "sel", "start", "tri", "sq", "o", "x", "l3", _
+                        "l2", "l1", "r2", "r1", "h", "fr1", _
+                        "holdo", "l1t", _
+                        "pause", "nopause"}
+
+        Dim tmpcmd = entry(1)
+        Dim CMDmulti As Integer = 1
+
+        If IsNumeric(tmpcmd(tmpcmd.Length - 1)) And tmpcmd(tmpcmd.Length - 2) = "x" Then
+            CMDmulti = Val(tmpcmd(tmpcmd.Length - 1))
+            tmpcmd = Microsoft.VisualBasic.Left(tmpcmd, tmpcmd.Length - 2)
+        End If
+
+        If CllCMDList.Contains(tmpcmd) Then
+
+
+
+            If chkVoting.Checked = False Then
+                For i = 0 To CMDmulti
+                    execCMD(tmpcmd)
+                Next
+            Else
+                If collectVotes Then
+                    Dim currvote As New Votes
+                    currvote = votes.Find(Function(v As Votes) v.username = entry(0))
+
+                    If currvote IsNot Nothing Then
+                        votes.Remove(currvote)
+                    End If
+
+                    currvote = New Votes
+                    currvote.username = entry(0)
+                    currvote.command = tmpcmd
+                    currvote.cmdmulti = CMDmulti
+
+                    votes.Add(currvote)
+                End If
+            End If
+        End If
+
+    End Sub
+
     Private Sub execCMD(cmd As String)
 
         REM PS3Controller ( buttons, R stick left/right, R stick up/down, L stick left/right, L stick up/down, _
@@ -399,41 +545,42 @@ Public Class DeSCtrl
     Private Sub btnUpdate_Click(sender As Object, e As EventArgs) Handles btnUpdate.Click
 
         Dim Elems As HtmlElementCollection
-        REM Dim Elems As WebKit.DOM.NodeList
         Dim ember As Integer
 
         Dim entry(2) As String
 
-        Try
-            Elems = wb.Document.GetElementsByTagName("li")
-            REM Elems = wkb.Document.GetElementsByTagName("li")
+        'Try
+        Elems = wb.Document.GetElementsByTagName("li")
+        For Each elem As HtmlElement In Elems
+            If elem.GetAttribute("id").Contains("ember") Then
+                ember = parseEmber(elem.GetAttribute("id"))
+                If ember > lastEmber Then
+                    lastEmber = ember
 
-            REM For Each elem As WebKit.DOM.Element In Elems
-            For Each elem As HtmlElement In Elems
-
-
-                If elem.GetAttribute("id").Contains("ember") Then
-
-                    ember = parseEmber(elem.GetAttribute("id"))
-                    If ember > lastEmber Then
-                        lastEmber = ember
-
-                        entry = parseChat(elem.InnerText)
-                        REM entry = parseChat(elem.TextContent)
-                        execCMD(entry(1))
-
-                    End If
+                    entry = parseChat(elem.InnerText)
+                    'execCMD(entry(1))
+                    ProcessCMD(entry)
                 End If
-
-
-            Next
-
+            End If
+        Next
+        Try
         Catch ex As Exception
-            txtChat.Text = ex.Message
+            txtChat.Text += ex.Message & Environment.NewLine
         End Try
+    End Sub
 
+    Private Sub chkVoting_CheckedChanged(sender As Object, e As EventArgs) Handles chkVoting.CheckedChanged
+        If chkVoting.Checked Then
+            refTimerVote.Interval = 15000
+            refTimerVote.Enabled = True
+            refTimerVote.Start()
+        Else
+            refTimerVote.Enabled = False
+            refTimerVote.Stop()
+        End If
     End Sub
 End Class
+
 Public Class QdInput
     Public buttons As UInteger
     Public RstickLR As Single
@@ -441,4 +588,9 @@ Public Class QdInput
     Public LStickLR As Single
     Public LStickUD As Single
     Public time As UInteger
+End Class
+Public Class Votes
+    Public username As String
+    Public command As String
+    Public cmdmulti As Integer = 1
 End Class

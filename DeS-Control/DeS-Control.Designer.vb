@@ -34,7 +34,7 @@ Partial Class DeSCtrl
         Me.rbTMAPI = New System.Windows.Forms.RadioButton()
         Me.chkCMDPause = New System.Windows.Forms.CheckBox()
         Me.chkHoldL1 = New System.Windows.Forms.CheckBox()
-        'Me.wkb = New WebKit.WebKitBrowser()
+        Me.chkVoting = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         '
         'txtPS3IP
@@ -91,6 +91,7 @@ Partial Class DeSCtrl
         Me.txtChat.Location = New System.Drawing.Point(36, 349)
         Me.txtChat.Multiline = True
         Me.txtChat.Name = "txtChat"
+        Me.txtChat.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.txtChat.Size = New System.Drawing.Size(391, 266)
         Me.txtChat.TabIndex = 45
         '
@@ -114,22 +115,22 @@ Partial Class DeSCtrl
         'rbCCAPI
         '
         Me.rbCCAPI.AutoSize = True
+        Me.rbCCAPI.Checked = True
         Me.rbCCAPI.Location = New System.Drawing.Point(53, 41)
         Me.rbCCAPI.Name = "rbCCAPI"
         Me.rbCCAPI.Size = New System.Drawing.Size(56, 17)
         Me.rbCCAPI.TabIndex = 48
+        Me.rbCCAPI.TabStop = True
         Me.rbCCAPI.Text = "CCAPI"
         Me.rbCCAPI.UseVisualStyleBackColor = True
         '
         'rbTMAPI
         '
         Me.rbTMAPI.AutoSize = True
-        Me.rbTMAPI.Checked = True
         Me.rbTMAPI.Location = New System.Drawing.Point(53, 64)
         Me.rbTMAPI.Name = "rbTMAPI"
         Me.rbTMAPI.Size = New System.Drawing.Size(58, 17)
         Me.rbTMAPI.TabIndex = 49
-        Me.rbTMAPI.TabStop = True
         Me.rbTMAPI.Text = "TMAPI"
         Me.rbTMAPI.UseVisualStyleBackColor = True
         '
@@ -155,21 +156,22 @@ Partial Class DeSCtrl
         Me.chkHoldL1.Text = "Hold L1"
         Me.chkHoldL1.UseVisualStyleBackColor = True
         '
-        'wkb
+        'chkVoting
         '
-        'Me.wkb.BackColor = System.Drawing.Color.White
-        'Me.wkb.Location = New System.Drawing.Point(152, 267)
-        'Me.wkb.Name = "wkb"
-        'Me.wkb.Size = New System.Drawing.Size(77, 62)
-        'Me.wkb.TabIndex = 52
-        'Me.wkb.Url = Nothing
+        Me.chkVoting.AutoSize = True
+        Me.chkVoting.Location = New System.Drawing.Point(166, 167)
+        Me.chkVoting.Name = "chkVoting"
+        Me.chkVoting.Size = New System.Drawing.Size(98, 17)
+        Me.chkVoting.TabIndex = 52
+        Me.chkVoting.Text = "Voting Enabled"
+        Me.chkVoting.UseVisualStyleBackColor = True
         '
         'DeSCtrl
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(862, 642)
-        'Me.Controls.Add(Me.wkb)
+        Me.Controls.Add(Me.chkVoting)
         Me.Controls.Add(Me.chkHoldL1)
         Me.Controls.Add(Me.chkCMDPause)
         Me.Controls.Add(Me.rbTMAPI)
@@ -200,6 +202,7 @@ Partial Class DeSCtrl
     Friend WithEvents rbTMAPI As System.Windows.Forms.RadioButton
     Friend WithEvents chkCMDPause As System.Windows.Forms.CheckBox
     Friend WithEvents chkHoldL1 As System.Windows.Forms.CheckBox
+    Friend WithEvents chkVoting As System.Windows.Forms.CheckBox
     'Friend WithEvents wkb As WebKit.WebKitBrowser
 
 End Class
