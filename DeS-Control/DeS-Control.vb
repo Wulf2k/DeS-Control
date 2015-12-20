@@ -147,6 +147,7 @@ Public Class DeSCtrl
             refTimerPress.Start()
 
             PopQ()
+
             UInteger2Four(&H2A6398, &H60000000&)
         Else
             Dim buttons = 0
@@ -298,8 +299,8 @@ Public Class DeSCtrl
     Private Sub PS3Controller(buttons As UInteger, RLR As Single, RUD As Single, LLR As Single, LUD As Single, hold As Integer)
         If chkHoldO.Checked Then buttons = (buttons Or &H20)
         If chkHoldL1.Checked Then buttons = (buttons Or &H4)
-
         PushQ(buttons, RLR, RUD, LLR, LUD, hold)
+
         If refTimerPress.Enabled = False Then refTimerPress.Enabled = True
 
     End Sub
@@ -328,20 +329,27 @@ Public Class DeSCtrl
 
         Dim CllCMDList As String()
 
-        CllCMDList = {"wf", "wl", "wb", "wr", "wfl", "wfr", "wbl", "wbr", "flong", "hwf", "hwl", "hwr", "hwb", _
+        CllCMDList = {"wf", "wl", "wb", "wr", "wfl", "wfr", "wbl", "wbr", "flong", _
+                        "hwf", "hwl", "hwr", "hwb", _
+                        "hwfl", "hwfr", "hwbl", "hwbr", _
                         "rf", "rl", "rb", "rr", _
                         "lu", "ll", "lr", "ld", "r3", _
+                        "du", "dd", "dl", "dr", _
                         "sel", "start", "tri", "sq", "o", "x", "l3", _
                         "l2", "l1", "r2", "r1", "h", "fr1", _
                         "holdo", "l1t", _
-                        "pause", "nopause"}
+                        "pause", "nopause", "votemode", "novotemode"}
 
         Dim tmpcmd = entry(1)
         Dim CMDmulti As Integer = 1
 
-        If IsNumeric(tmpcmd(tmpcmd.Length - 1)) And tmpcmd(tmpcmd.Length - 2) = "x" Then
-            CMDmulti = Val(tmpcmd(tmpcmd.Length - 1))
-            tmpcmd = Microsoft.VisualBasic.Left(tmpcmd, tmpcmd.Length - 2)
+        If tmpcmd.Length > 2 Then
+
+
+            If IsNumeric(tmpcmd(tmpcmd.Length - 1)) And tmpcmd(tmpcmd.Length - 2) = "x" Then
+                CMDmulti = Val(tmpcmd(tmpcmd.Length - 1))
+                tmpcmd = Microsoft.VisualBasic.Left(tmpcmd, tmpcmd.Length - 2)
+            End If
         End If
 
         If CllCMDList.Contains(tmpcmd) Then
@@ -349,7 +357,7 @@ Public Class DeSCtrl
 
 
             If chkVoting.Checked = False Then
-                For i = 0 To CMDmulti
+                For i = 0 To CMDmulti - 1
                     execCMD(tmpcmd)
                 Next
             Else
@@ -378,6 +386,10 @@ Public Class DeSCtrl
         REM PS3Controller ( buttons, R stick left/right, R stick up/down, L stick left/right, L stick up/down, _
         REM                 hold button length)
 
+        For i = 0 To QueuedInput.Count - 1
+            txtChat.Text += Hex(QueuedInput.Item(i).buttons) & Environment.NewLine
+        Next
+
         Select Case cmd
             Case "wf"
                 PS3Controller(0, 0, 0, 0, 1, 1000)
@@ -396,6 +408,27 @@ Public Class DeSCtrl
                 PS3Controller(0, 0, 0, -1, -1, 1000)
             Case "wbr"
                 PS3Controller(0, 0, 0, 1, -1, 1000)
+
+            Case "hwf"
+                PS3Controller(0, 0, 0, 0, 0.5, 1000)
+            Case "hwl"
+                PS3Controller(0, 0, 0, -0.5, 0, 1000)
+            Case "hwb"
+                PS3Controller(0, 0, 0, 0, -0.5, 1000)
+            Case "hwr"
+                PS3Controller(0, 0, 0, 0.5, 0, 1000)
+
+            Case "hwfl"
+                PS3Controller(0, 0, 0, -0.5, 0.5, 1000)
+            Case "hwfr"
+                PS3Controller(0, 0, 0, 0.5, 0.5, 1000)
+            Case "hwbl"
+                PS3Controller(0, 0, 0, -0.5, -0.5, 1000)
+            Case "hwbr"
+                PS3Controller(0, 0, 0, 0.5, -0.5, 1000)
+
+            Case "flong"
+                PS3Controller(0, 0, 0, 0, 1, 4000)
 
             Case "rf"
                 PS3Controller(0, 0, 0, 0, 1, 50)
@@ -501,15 +534,17 @@ Public Class DeSCtrl
             Case "h"
                 PS3Controller(0, 0, 0, 0, 0, 500)
 
-
             Case "pause"
                 chkCMDPause.Checked = True
                 UInteger2Four(&H2A6398, &H4954EA28&)
             Case "nopause"
                 chkCMDPause.Checked = False
                 UInteger2Four(&H2A6398, &H60000000&)
-            Case "flong"
-                PS3Controller(0, 0, 0, 0, 1, 4000)
+
+            Case "votemode"
+                chkVoting.Checked = True
+            Case "novotemode"
+                chkVoting.Checked = False
 
             Case "reconnect"
                 btnConnect.PerformClick()
@@ -524,15 +559,6 @@ Public Class DeSCtrl
                 PS3Controller(0, 0, 0, 0, 0, 1000)
             Case "hx3"
                 PS3Controller(0, 0, 0, 0, 0, 1500)
-
-            Case "hwf"
-                PS3Controller(0, 0, 0, 0, 0.5, 1000)
-            Case "hwl"
-                PS3Controller(0, 0, 0, -0.5, 0, 1000)
-            Case "hwb"
-                PS3Controller(0, 0, 0, 0, -0.5, 1000)
-            Case "hwr"
-                PS3Controller(0, 0, 0, 0.5, 0, 1000)
 
             Case "fr1"
                 PS3Controller(&H8, 0, 0, 0, 1, 250)
