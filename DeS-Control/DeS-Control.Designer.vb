@@ -35,6 +35,7 @@ Partial Class DeSCtrl
         Me.chkCMDPause = New System.Windows.Forms.CheckBox()
         Me.chkHoldL1 = New System.Windows.Forms.CheckBox()
         Me.chkVoting = New System.Windows.Forms.CheckBox()
+        Me.chkHoldX = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         '
         'txtPS3IP
@@ -79,7 +80,7 @@ Partial Class DeSCtrl
         'chkHoldO
         '
         Me.chkHoldO.AutoSize = True
-        Me.chkHoldO.Location = New System.Drawing.Point(166, 97)
+        Me.chkHoldO.Location = New System.Drawing.Point(53, 98)
         Me.chkHoldO.Name = "chkHoldO"
         Me.chkHoldO.Size = New System.Drawing.Size(59, 17)
         Me.chkHoldO.TabIndex = 44
@@ -88,11 +89,11 @@ Partial Class DeSCtrl
         '
         'txtChat
         '
-        Me.txtChat.Location = New System.Drawing.Point(36, 349)
+        Me.txtChat.Location = New System.Drawing.Point(36, 167)
         Me.txtChat.Multiline = True
         Me.txtChat.Name = "txtChat"
         Me.txtChat.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
-        Me.txtChat.Size = New System.Drawing.Size(391, 266)
+        Me.txtChat.Size = New System.Drawing.Size(391, 448)
         Me.txtChat.TabIndex = 45
         '
         'btnUpdate
@@ -139,7 +140,7 @@ Partial Class DeSCtrl
         Me.chkCMDPause.AutoSize = True
         Me.chkCMDPause.Checked = True
         Me.chkCMDPause.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkCMDPause.Location = New System.Drawing.Point(166, 143)
+        Me.chkCMDPause.Location = New System.Drawing.Point(166, 98)
         Me.chkCMDPause.Name = "chkCMDPause"
         Me.chkCMDPause.Size = New System.Drawing.Size(154, 17)
         Me.chkCMDPause.TabIndex = 50
@@ -149,7 +150,7 @@ Partial Class DeSCtrl
         'chkHoldL1
         '
         Me.chkHoldL1.AutoSize = True
-        Me.chkHoldL1.Location = New System.Drawing.Point(166, 120)
+        Me.chkHoldL1.Location = New System.Drawing.Point(53, 121)
         Me.chkHoldL1.Name = "chkHoldL1"
         Me.chkHoldL1.Size = New System.Drawing.Size(63, 17)
         Me.chkHoldL1.TabIndex = 51
@@ -159,18 +160,29 @@ Partial Class DeSCtrl
         'chkVoting
         '
         Me.chkVoting.AutoSize = True
-        Me.chkVoting.Location = New System.Drawing.Point(166, 167)
+        Me.chkVoting.Location = New System.Drawing.Point(166, 122)
         Me.chkVoting.Name = "chkVoting"
         Me.chkVoting.Size = New System.Drawing.Size(98, 17)
         Me.chkVoting.TabIndex = 52
         Me.chkVoting.Text = "Voting Enabled"
         Me.chkVoting.UseVisualStyleBackColor = True
         '
+        'chkHoldX
+        '
+        Me.chkHoldX.AutoSize = True
+        Me.chkHoldX.Location = New System.Drawing.Point(53, 144)
+        Me.chkHoldX.Name = "chkHoldX"
+        Me.chkHoldX.Size = New System.Drawing.Size(58, 17)
+        Me.chkHoldX.TabIndex = 53
+        Me.chkHoldX.Text = "Hold X"
+        Me.chkHoldX.UseVisualStyleBackColor = True
+        '
         'DeSCtrl
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(862, 642)
+        Me.Controls.Add(Me.chkHoldX)
         Me.Controls.Add(Me.chkVoting)
         Me.Controls.Add(Me.chkHoldL1)
         Me.Controls.Add(Me.chkCMDPause)
@@ -203,6 +215,7 @@ Partial Class DeSCtrl
     Friend WithEvents chkCMDPause As System.Windows.Forms.CheckBox
     Friend WithEvents chkHoldL1 As System.Windows.Forms.CheckBox
     Friend WithEvents chkVoting As System.Windows.Forms.CheckBox
+    Friend WithEvents chkHoldX As System.Windows.Forms.CheckBox
     'Friend WithEvents wkb As WebKit.WebKitBrowser
 
 End Class
