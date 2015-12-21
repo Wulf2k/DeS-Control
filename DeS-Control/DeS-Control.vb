@@ -247,16 +247,14 @@ Public Class DeSCtrl
         Next
 
         If votes.Count > 0 Then
-
-
             cllMoveCMD = {"wf", "wl", "wb", "wr", "wfl", "wfr", "wbl", "wbr", "flong", "hwf", "hwl", "hwr", "hwb", _
                           "hwfl", "hwfr", "hwbl", "hwbr"}
             cllRollCMD = {"rf", "rl", "rb", "rr"}
             cllCamCMD = {"lu", "ll", "lr", "ld", "r3"}
-            cllBtnCMD = {"sel", "start", "tri", "sq", "o", "x", "l3", "du", "dd", "dl", "dr"}
-            cllCombatCMD = {"l2", "l1", "r2", "r1", "h", "fr1"}
+            cllBtnCMD = {"sq", "tri", "o", "x", "du", "dd", "dl", "dr", "start", "l3", "sel"}
+            cllCombatCMD = {"l1", "l2", "r1", "r2", "fr1", "h"}
             cllToggleCMD = {"holdo", "holdx", "holdl1"}
-            cllSysCMD = {"pause", "nopause", "delaydn", "delayup", "votemode", "novotemode"}
+            cllSysCMD = {"pause", "nopause", "votemode", "novotemode"}
 
             cllCll.Add(cllMoveCMD)
             cllCll.Add(cllRollCMD)
@@ -317,6 +315,9 @@ Public Class DeSCtrl
             Next
 
             'txtChat.Text += catVotes(voteWin).Count & Environment.NewLine
+        Else
+            outputChat("No votes.")
+            refTimerVote.Interval = 1000
         End If
 
         votes.Clear()
@@ -382,8 +383,7 @@ Public Class DeSCtrl
                         "sel", "start", "tri", "sq", "o", "x", "l3", _
                         "l2", "l1", "r2", "r1", "h", "fr1", _
                         "holdo", "holdx", "holdl1", _
-                        "pause", "nopause", "votemode", "novotemode", _
-                        "delaydn", "delayup"}
+                        "pause", "nopause", "votemode", "novotemode", "delaydn", "delayup"}
 
         Dim tmpcmd = entry(1)
         Dim CMDmulti As Integer = 1
@@ -399,11 +399,9 @@ Public Class DeSCtrl
 
         If CllCMDList.Contains(tmpcmd) Then
 
-
-
-            If chkVoting.Checked = False Then
+            If (chkVoting.Checked = False) Or tmpcmd = "delaydn" Or tmpcmd = "delayup" Then
                 For i = 0 To CMDmulti - 1
-                    execCMD(tmpcmd)
+                    If QueuedInput.Count < 50 Then execCMD(tmpcmd)
                 Next
             Else
                 If collectVotes Then
@@ -474,19 +472,19 @@ Public Class DeSCtrl
             Case "rf"
                 PS3Controller(0, 0, 0, 0, 1, 50)
                 PS3Controller(&H20&, 0, 0, 0, 1, 300)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 750)
             Case "rl"
                 PS3Controller(0, 0, 0, -1, 0, 50)
                 PS3Controller(&H20&, 0, 0, -1, 0, 300)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 750)
             Case "rb"
                 PS3Controller(0, 0, 0, 0, -1, 50)
                 PS3Controller(&H20&, 0, 0, 0, -1, 300)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 750)
             Case "rr"
                 PS3Controller(0, 0, 0, 1, 0, 50)
                 PS3Controller(&H20&, 0, 0, 1, 0, 300)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 750)
 
             Case "lu"
                 PS3Controller(0, 0, 1, 0, 0, 150)
@@ -499,32 +497,32 @@ Public Class DeSCtrl
 
             Case "du"
                 PS3Controller(&H100000, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
             Case "dd"
                 PS3Controller(&H400000, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
             Case "dl"
                 PS3Controller(&H800000, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
             Case "dr"
                 PS3Controller(&H200000, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
 
             Case "sel"
                 PS3Controller(&H10000, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
             Case "start"
                 PS3Controller(&H80000, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
             Case "tri"
                 PS3Controller(&H10, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
             Case "sq"
                 PS3Controller(&H80, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 1500)
             Case "o"
                 PS3Controller(&H20, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
             Case "x"
                 REM Check if menu selected is Quit Game
                 If Four2UInteger(DoNotQuitPtr) = &H4076 Then
@@ -538,15 +536,15 @@ Public Class DeSCtrl
 
             Case "l2"
                 PS3Controller(&H1, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
             Case "l1"
                 PS3Controller(&H4, 0, 0, 0, 0, 500)
             Case "r2"
                 PS3Controller(&H2, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
             Case "r1"
                 PS3Controller(&H8, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 200)
+                PS3Controller(0, 0, 0, 0, 0, 400)
 
             Case "fr1"
                 PS3Controller(&H8, 0, 0, 0, 1, 250)
@@ -609,11 +607,9 @@ Public Class DeSCtrl
                 refTimerVote.Interval = 1000
 
             Case "delaydn"
-                If voteTimer > 5000 Then voteTimer -= 1000
-                refTimerVote.Interval = 1000
+                If voteTimer > 10000 Then voteTimer -= 1000
             Case "delayup"
                 If voteTimer < 60000 Then voteTimer += 1000
-                refTimerVote.Interval = 1000
         End Select
     End Sub
 
