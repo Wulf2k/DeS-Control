@@ -35,7 +35,8 @@ Public Class DeSCtrl
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         PS3.ChangeAPI(SelectAPI.TargetManager)
 
-        wb.Navigate("http://www.twitch.tv/wulf2k/chat?popout=")
+        'wb.Navigate("http://www.twitch.tv/wulf2k/chat?popout=")
+        wb.Navigate("www.twitch.tv/twitchplaysdark/chat")
 
         cllModNames.Add("Wulf2k")
         'cllModNames.Add("wulf2kbot")
@@ -198,7 +199,17 @@ Public Class DeSCtrl
             refTimerVote.Interval = voteTimer
             outputChat("Collecting votes for " & refTimerVote.Interval / 1000 & "s")
         Else
-            refTimerVote.Interval = 15000
+
+            Dim queuetime As UInteger = 0
+            For i = 0 To votes.Count - 1
+                If votes.Item(0).command = "flong" Then
+                    queuetime += 4000
+                Else
+                    queuetime += 1000
+                End If
+            Next
+
+            refTimerVote.Interval = 15000 + queuetime
             For i = 0 To votes.Count - 1
                 txtChat.Text += votes.Item(i).username & " - " & votes.Item(i).command & Environment.NewLine
             Next
@@ -485,6 +496,7 @@ Public Class DeSCtrl
                 PS3Controller(0, 0, 0, 1, 0, 50)
                 PS3Controller(&H20&, 0, 0, 1, 0, 300)
                 PS3Controller(0, 0, 0, 0, 0, 750)
+
 
             Case "lu"
                 PS3Controller(0, 0, 1, 0, 0, 150)
