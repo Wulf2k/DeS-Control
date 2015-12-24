@@ -16,6 +16,7 @@ Public Class DeSCtrl
     Dim repeatCount As Integer
 
     Dim collectVotes As Boolean
+    Dim lastVoter As String = ""
 
     Dim DoNotQuitPtr As UInteger = &H386001EC
 
@@ -35,7 +36,7 @@ Public Class DeSCtrl
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         PS3.ChangeAPI(SelectAPI.TargetManager)
 
-        'wb.Navigate("http://www.twitch.tv/wulf2k/chat?popout=")
+        'wb.Navigate("http://www.twitch.tv/wulf2k/chat")
         wb.Navigate("www.twitch.tv/twitchplaysdark/chat")
 
         cllModNames.Add("Wulf2k")
@@ -47,8 +48,11 @@ Public Class DeSCtrl
     End Sub
     Private Sub btnConnect_Click(sender As Object, e As EventArgs) Handles btnConnect.Click
 
+
         If rbCCAPI.Checked Then
             PS3.ChangeAPI(SelectAPI.ControlConsole)
+
+            CtrlPtr = &H10F3A160&
 
             If PS3.ConnectTarget(txtPS3IP.Text) Then
                 If PS3.AttachProcess() Then
@@ -61,6 +65,7 @@ Public Class DeSCtrl
             End If
         Else
             PS3.ChangeAPI(SelectAPI.TargetManager)
+            CtrlPtr = &H10F3A1A0&
             If PS3.TMAPI.ConnectTarget(txtPS3IP.Text) Then
                 If PS3.AttachProcess() Then
                     txtPS3IP.Enabled = False
@@ -150,6 +155,7 @@ Public Class DeSCtrl
             Float2Four(CtrlPtr + &H3C8, QueuedInput(0).LStickLR)
             Float2Four(CtrlPtr + &H3CC, QueuedInput(0).LStickUD)
 
+
             refTimerPress.Interval = QueuedInput(0).time
             refTimerPress.Enabled = True
             refTimerPress.Start()
@@ -168,6 +174,7 @@ Public Class DeSCtrl
             Float2Four(CtrlPtr + &H3C4, 0)
             Float2Four(CtrlPtr + &H3C8, 0)
             Float2Four(CtrlPtr + &H3CC, 0)
+
         End If
 
     End Sub
@@ -196,8 +203,16 @@ Public Class DeSCtrl
         collectVotes = Not collectVotes
 
         If collectVotes Then
+
+            Dim outputtext As String
+            outputtext = "Collecting votes for " & voteTimer / 1000 & "s."
+
+            If chkHoldL1.Checked Or chkHoldO.Checked Or chkHoldX.Checked Then
+                outputtext = outputtext & "  Currently holding:  X - " & chkHoldX.Checked & ". L1 = " & chkHoldL1.Checked & ". O = " & chkHoldO.Checked & "."
+            End If
+
             refTimerVote.Interval = voteTimer
-            outputChat("Collecting votes for " & refTimerVote.Interval / 1000 & "s")
+            outputChat(outputtext)
         Else
 
             Dim queuetime As UInteger = 0
@@ -210,9 +225,7 @@ Public Class DeSCtrl
             Next
 
             refTimerVote.Interval = 15000 + queuetime
-            For i = 0 To votes.Count - 1
-                txtChat.Text += votes.Item(i).username & " - " & votes.Item(i).command & Environment.NewLine
-            Next
+
             TallyVotes()
         End If
     End Sub
@@ -261,9 +274,9 @@ Public Class DeSCtrl
             cllMoveCMD = {"wf", "wl", "wb", "wr", "wfl", "wfr", "wbl", "wbr", "flong", "hwf", "hwl", "hwr", "hwb", _
                           "hwfl", "hwfr", "hwbl", "hwbr"}
             cllRollCMD = {"rf", "rl", "rb", "rr"}
-            cllCamCMD = {"lu", "ll", "lr", "ld", "r3"}
+            cllCamCMD = {"lu", "ll", "lr", "ld", "r3", "hlu", "hll", "hlr", "hld"}
             cllBtnCMD = {"sq", "tri", "o", "x", "du", "dd", "dl", "dr", "start", "l3", "sel"}
-            cllCombatCMD = {"l1", "l2", "r1", "r2", "fr1", "h"}
+            cllCombatCMD = {"l1", "l2", "r1", "r2", "fr1", "h", "hh"}
             cllToggleCMD = {"holdo", "holdx", "holdl1"}
             cllSysCMD = {"pause", "nopause", "votemode", "novotemode"}
 
@@ -305,8 +318,6 @@ Public Class DeSCtrl
                 If voteCat(i) > subvoteTally Then
                     subvoteWin = i
                     subvoteTally = voteCat(i)
-
-                    'txtChat.Text += voteCat(i) & Environment.NewLine
                 End If
             Next
 
@@ -321,11 +332,10 @@ Public Class DeSCtrl
             outputChat("Winning command: " & subcatVotes.Item(0).command & " x" & _
                        subcatVotes.Item(subcatVotes.Count / 2).cmdmulti)
 
-            For i = 0 To subcatVotes.Item(subcatVotes.Count / 2).cmdmulti - 1
+            For i = 0 To subcatVotes.Item(subcatVotes.Count / 2 - 1).cmdmulti - 1
                 execCMD(subcatVotes.Item(0).command)
             Next
 
-            'txtChat.Text += catVotes(voteWin).Count & Environment.NewLine
         Else
             outputChat("No votes.")
             refTimerVote.Interval = 1000
@@ -390,14 +400,17 @@ Public Class DeSCtrl
                         "hwfl", "hwfr", "hwbl", "hwbr", _
                         "rf", "rl", "rb", "rr", _
                         "lu", "ll", "lr", "ld", "r3", _
+                        "hlu", "hll", "hlr", "hld", _
                         "du", "dd", "dl", "dr", _
                         "sel", "start", "tri", "sq", "o", "x", "l3", _
-                        "l2", "l1", "r2", "r1", "h", "fr1", _
+                        "l2", "l1", "r2", "r1", "h", "hh", "fr1", _
                         "holdo", "holdx", "holdl1", _
                         "pause", "nopause", "votemode", "novotemode", "delaydn", "delayup"}
 
+        Dim tmpuser = entry(0)
         Dim tmpcmd = entry(1)
         Dim CMDmulti As Integer = 1
+        Dim currvote As New Votes
 
         If tmpcmd.Length > 2 Then
 
@@ -408,27 +421,48 @@ Public Class DeSCtrl
             End If
         End If
 
+        If CMDmulti > 5 Then
+            CMDmulti = 5
+        End If
+
+        Select Case tmpcmd
+            Case "flong"
+                If CMDmulti > 2 Then CMDmulti = 2
+            Case "sq"
+                If CMDmulti > 2 Then CMDmulti = 2
+        End Select
+
+
         If CllCMDList.Contains(tmpcmd) Then
 
             If (chkVoting.Checked = False) Or tmpcmd = "delaydn" Or tmpcmd = "delayup" Then
+                'If Not (tmpcmd = "delaydn" Or tmpcmd = "delayup") Then
+                ' If Not tmpuser = lastVoter Then
+                'outputChat("Change in operator detected.  Entering vote mode automatically.")
+                'chkVoting.Checked = Not chkVoting.Checked
+                'Else
                 For i = 0 To CMDmulti - 1
                     If QueuedInput.Count < 50 Then execCMD(tmpcmd)
                 Next
-            Else
+                'End If
+            End If
+            'End If
+            If chkVoting.Checked = True Then
                 If collectVotes Then
-                    Dim currvote As New Votes
-                    currvote = votes.Find(Function(v As Votes) v.username = entry(0))
+                    currvote = votes.Find(Function(v As Votes) v.username = tmpuser)
 
                     If currvote IsNot Nothing Then
                         votes.Remove(currvote)
                     End If
 
                     currvote = New Votes
-                    currvote.username = entry(0)
+                    currvote.username = tmpuser
                     currvote.command = tmpcmd
                     currvote.cmdmulti = CMDmulti
 
                     votes.Add(currvote)
+
+                    lastVoter = tmpuser
                 End If
             End If
         End If
@@ -497,7 +531,6 @@ Public Class DeSCtrl
                 PS3Controller(&H20&, 0, 0, 1, 0, 300)
                 PS3Controller(0, 0, 0, 0, 0, 750)
 
-
             Case "lu"
                 PS3Controller(0, 0, 1, 0, 0, 150)
             Case "ll"
@@ -506,6 +539,15 @@ Public Class DeSCtrl
                 PS3Controller(0, 1, 0, 0, 0, 150)
             Case "ld"
                 PS3Controller(0, 0, -1, 0, 0, 150)
+
+            Case "hlu"
+                PS3Controller(0, 0, 0.5, 0, 0, 150)
+            Case "hll"
+                PS3Controller(0, -0.5, 0, 0, 0, 150)
+            Case "hlr"
+                PS3Controller(0, 0.5, 0, 0, 0, 150)
+            Case "hld"
+                PS3Controller(0, 0, -0.5, 0, 0, 150)
 
             Case "du"
                 PS3Controller(&H100000, 0, 0, 0, 0, 150)
@@ -531,7 +573,7 @@ Public Class DeSCtrl
                 PS3Controller(0, 0, 0, 0, 0, 400)
             Case "sq"
                 PS3Controller(&H80, 0, 0, 0, 0, 150)
-                PS3Controller(0, 0, 0, 0, 0, 1500)
+                PS3Controller(0, 0, 0, 0, 0, 2000)
             Case "o"
                 PS3Controller(&H20, 0, 0, 0, 0, 150)
                 PS3Controller(0, 0, 0, 0, 0, 400)
@@ -560,6 +602,7 @@ Public Class DeSCtrl
 
             Case "fr1"
                 PS3Controller(&H8, 0, 0, 0, 1, 250)
+                PS3Controller(0, 0, 0, 0, 0, 400)
 
             Case "l3"
                 PS3Controller(&H20000, 0, 0, 0, 0, 150)
@@ -601,7 +644,8 @@ Public Class DeSCtrl
                 refTimerVote.Interval = 1000
             Case "h"
                 PS3Controller(0, 0, 0, 0, 0, 500)
-
+            Case "hh"
+                PS3Controller(0, 0, 0, 0, 0, 250)
             Case "pause"
                 chkCMDPause.Checked = True
                 UInteger2Four(&H2A6398, &H4954EA28&)
@@ -657,6 +701,7 @@ Public Class DeSCtrl
             refTimerVote.Interval = 5000
             refTimerVote.Enabled = True
             refTimerVote.Start()
+            chkCMDPause.Checked = True
         Else
             refTimerVote.Enabled = False
             refTimerVote.Stop()
