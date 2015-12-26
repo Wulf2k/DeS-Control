@@ -110,6 +110,7 @@ Partial Class DeSCtrl
         Me.wb.Location = New System.Drawing.Point(433, 12)
         Me.wb.MinimumSize = New System.Drawing.Size(20, 20)
         Me.wb.Name = "wb"
+        Me.wb.ScriptErrorsSuppressed = True
         Me.wb.Size = New System.Drawing.Size(408, 603)
         Me.wb.TabIndex = 47
         '
