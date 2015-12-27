@@ -555,7 +555,7 @@ Public Class DeSCtrl
                 PS3Controller(&H20&, 0, 0, -1, 0, 2)
                 PS3Controller(0, 0, 0, 0, 0, 20)
             Case "rb"
-                PS3Controller(0, 0, 0, 0, -1, 4)
+                PS3Controller(0, 0, 0, 0, -1, 6)
                 PS3Controller(&H20&, 0, 0, 0, -1, 2)
                 PS3Controller(0, 0, 0, 0, 0, 18)
             Case "rr"
