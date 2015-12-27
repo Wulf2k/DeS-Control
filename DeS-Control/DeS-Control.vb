@@ -45,8 +45,10 @@ Public Class DeSCtrl
     Dim lastEmber As Integer = 711
 
     'Dim CtrlPtr As UInteger = &H10F3A1A0& - TMAPI?
-    Dim CtrlPtr As UInteger = &H10F3A160&
+    'Dim CtrlPtr As UInteger = &H10F3A160& - CCAPI?
+    Dim CtrlPtr As UInteger = &H10F3A1A0&
     Dim repeatCount As Integer
+
 
     Dim collectVotes As Boolean
     Dim lastVoter As String = ""
@@ -72,8 +74,8 @@ Public Class DeSCtrl
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         PS3.ChangeAPI(SelectAPI.TargetManager)
 
-        wb.Navigate("http://www.twitch.tv/wulf2k/chat")
-        'wb.Navigate("www.twitch.tv/twitchplaysdark/chat")
+        'wb.Navigate("http://www.twitch.tv/wulf2k/chat")
+        wb.Navigate("www.twitch.tv/twitchplaysdark/chat")
 
         cllModNames.Add("Wulf2k")
         cllModNames.Add("wulf2kbot")
@@ -89,9 +91,6 @@ Public Class DeSCtrl
     Private Sub btnConnect_Click(sender As Object, e As EventArgs) Handles btnConnect.Click
         If rbCCAPI.Checked Then
             PS3.ChangeAPI(SelectAPI.ControlConsole)
-
-            CtrlPtr = &H10F3A160&
-
             refTimerPress.Interval = 500
 
             If PS3.ConnectTarget(txtPS3IP.Text) Then
@@ -105,7 +104,6 @@ Public Class DeSCtrl
             End If
         Else
             PS3.ChangeAPI(SelectAPI.TargetManager)
-            CtrlPtr = &H10F3A1A0&
             refTimerPress.Interval = 50
             If PS3.TMAPI.ConnectTarget(txtPS3IP.Text) Then
                 If PS3.AttachProcess() Then
@@ -251,7 +249,7 @@ Public Class DeSCtrl
 
             Dim queuetime As UInteger = 0
             For i = 0 To votes.Count - 1
-                If votes.Item(0).command = "flong" Then
+                If votes.Item(i).command = "flong" Then
                     queuetime += 4000
                 Else
                     queuetime += 1000
@@ -420,7 +418,7 @@ Public Class DeSCtrl
     Private Sub outputChat(ByVal txt As String)
         wb.Document.GetElementById("ember651").InnerText = txt
 
-        refTimerPost.Interval = 10
+        refTimerPost.Interval = 100
         refTimerPost.Enabled = True
         refTimerPost.Start()
     End Sub
