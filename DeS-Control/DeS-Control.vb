@@ -686,11 +686,11 @@ Public Class DeSCtrl
 
             Case "pause"
                 chkCMDPause.Checked = True
-                'UInteger2Four(&H2A63A4, &H4954EA1C&)
+                UInteger2Four(pauseModePtr, 1)
                 refTimerVote.Interval = 1000
             Case "nopause"
                 chkCMDPause.Checked = False
-                'UInteger2Four(&H2A63A4, &H60000000&)
+                UInteger2Four(pauseModePtr, 0)
                 refTimerVote.Interval = 1000
 
             Case "votemode"
