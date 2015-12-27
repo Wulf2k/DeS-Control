@@ -46,7 +46,7 @@ Partial Class DeSCtrl
         Me.txtPS3IP.Name = "txtPS3IP"
         Me.txtPS3IP.Size = New System.Drawing.Size(107, 20)
         Me.txtPS3IP.TabIndex = 13
-        Me.txtPS3IP.Text = "10.0.0.64"
+        Me.txtPS3IP.Text = "10.0.0.63"
         '
         'btnConnect
         '
@@ -117,30 +117,28 @@ Partial Class DeSCtrl
         'rbCCAPI
         '
         Me.rbCCAPI.AutoSize = True
-        Me.rbCCAPI.Checked = True
         Me.rbCCAPI.Location = New System.Drawing.Point(53, 41)
         Me.rbCCAPI.Name = "rbCCAPI"
         Me.rbCCAPI.Size = New System.Drawing.Size(56, 17)
         Me.rbCCAPI.TabIndex = 48
-        Me.rbCCAPI.TabStop = True
         Me.rbCCAPI.Text = "CCAPI"
         Me.rbCCAPI.UseVisualStyleBackColor = True
         '
         'rbTMAPI
         '
         Me.rbTMAPI.AutoSize = True
+        Me.rbTMAPI.Checked = True
         Me.rbTMAPI.Location = New System.Drawing.Point(53, 64)
         Me.rbTMAPI.Name = "rbTMAPI"
         Me.rbTMAPI.Size = New System.Drawing.Size(58, 17)
         Me.rbTMAPI.TabIndex = 49
+        Me.rbTMAPI.TabStop = True
         Me.rbTMAPI.Text = "TMAPI"
         Me.rbTMAPI.UseVisualStyleBackColor = True
         '
         'chkCMDPause
         '
         Me.chkCMDPause.AutoSize = True
-        Me.chkCMDPause.Checked = True
-        Me.chkCMDPause.CheckState = System.Windows.Forms.CheckState.Checked
         Me.chkCMDPause.Location = New System.Drawing.Point(166, 98)
         Me.chkCMDPause.Name = "chkCMDPause"
         Me.chkCMDPause.Size = New System.Drawing.Size(154, 17)
