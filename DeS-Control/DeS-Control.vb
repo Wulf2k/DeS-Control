@@ -92,7 +92,7 @@ Public Class DeSCtrl
         If rbCCAPI.Checked Then
             PS3.ChangeAPI(SelectAPI.ControlConsole)
             refTimerPress.Interval = 500
-
+            CtrlPtr = &H10F3A160&
             If PS3.ConnectTarget(txtPS3IP.Text) Then
                 If PS3.AttachProcess() Then
                     txtPS3IP.Enabled = False
@@ -105,6 +105,7 @@ Public Class DeSCtrl
         Else
             PS3.ChangeAPI(SelectAPI.TargetManager)
             refTimerPress.Interval = 50
+            CtrlPtr = &H10F3A1A0&
             If PS3.TMAPI.ConnectTarget(txtPS3IP.Text) Then
                 If PS3.AttachProcess() Then
                     txtPS3IP.Enabled = False
@@ -301,78 +302,86 @@ Public Class DeSCtrl
         For i = 0 To 6
             catVotes(i) = New List(Of Votes)
         Next
+        Try
+            If votes.Count > 0 Then
+                cllMoveCMD = {"wf", "wl", "wb", "wr", "wfl", "wfr", "wbl", "wbr", "flong", "hwf", "hwl", "hwr", "hwb", _
+                              "hwfl", "hwfr", "hwbl", "hwbr"}
+                cllRollCMD = {"rf", "rl", "rb", "rr"}
+                cllCamCMD = {"lu", "ll", "lr", "ld", "r3", "hlu", "hll", "hlr", "hld"}
+                cllBtnCMD = {"sq", "tri", "o", "x", "du", "dd", "dl", "dr", "start", "l3", "sel"}
+                cllCombatCMD = {"l1", "l2", "r1", "r2", "fr1", "h", "hh", "fa"}
+                cllToggleCMD = {"holdo", "holdx", "holdl1"}
+                cllSysCMD = {"pause", "nopause", "votemode", "novotemode"}
 
-        If votes.Count > 0 Then
-            cllMoveCMD = {"wf", "wl", "wb", "wr", "wfl", "wfr", "wbl", "wbr", "flong", "hwf", "hwl", "hwr", "hwb", _
-                          "hwfl", "hwfr", "hwbl", "hwbr"}
-            cllRollCMD = {"rf", "rl", "rb", "rr"}
-            cllCamCMD = {"lu", "ll", "lr", "ld", "r3", "hlu", "hll", "hlr", "hld"}
-            cllBtnCMD = {"sq", "tri", "o", "x", "du", "dd", "dl", "dr", "start", "l3", "sel"}
-            cllCombatCMD = {"l1", "l2", "r1", "r2", "fr1", "h", "hh", "fa"}
-            cllToggleCMD = {"holdo", "holdx", "holdl1"}
-            cllSysCMD = {"pause", "nopause", "votemode", "novotemode"}
-
-            cllCll.Add(cllMoveCMD)
-            cllCll.Add(cllRollCMD)
-            cllCll.Add(cllCamCMD)
-            cllCll.Add(cllBtnCMD)
-            cllCll.Add(cllCombatCMD)
-            cllCll.Add(cllToggleCMD)
-            cllCll.Add(cllSysCMD)
+                cllCll.Add(cllMoveCMD)
+                cllCll.Add(cllRollCMD)
+                cllCll.Add(cllCamCMD)
+                cllCll.Add(cllBtnCMD)
+                cllCll.Add(cllCombatCMD)
+                cllCll.Add(cllToggleCMD)
+                cllCll.Add(cllSysCMD)
 
 
-            REM Find winning category of votes
-            For i = 0 To votes.Count - 1
-                For j = 0 To cllCll.Count - 1
-                    If cllCll.Item(j).Contains(votes.Item(i).command) Then
-                        voteCat(j) += 1
-                        catVotes(j).Add(votes.Item(i))
+                REM Find winning category of votes
+                For i = 0 To votes.Count - 1
+                    For j = 0 To cllCll.Count - 1
+                        If cllCll.Item(j).Contains(votes.Item(i).command) Then
+                            voteCat(j) += 1
+                            catVotes(j).Add(votes.Item(i))
+                        End If
+                    Next
+                Next
+
+                For i = 0 To 6
+                    If voteCat(i) > voteTally Then
+                        voteWin = i
+                        voteTally = voteCat(i)
                     End If
                 Next
-            Next
-
-            For i = 0 To 6
-                If voteCat(i) > voteTally Then
-                    voteWin = i
-                    voteTally = voteCat(i)
-                End If
-            Next
 
 
-            REM Work with reduced set of votes here from winning category
-            ReDim voteCat(cllCll.Item(voteWin).Count)
+                REM Work with reduced set of votes here from winning category
+                ReDim voteCat(cllCll.Item(voteWin).Count)
 
-            For i = 0 To catVotes(voteWin).Count - 1
-                voteCat(Array.IndexOf(cllCll.Item(voteWin), catVotes(voteWin).Item(i).command)) += 1
-            Next
+                For i = 0 To catVotes(voteWin).Count - 1
+                    voteCat(Array.IndexOf(cllCll.Item(voteWin), catVotes(voteWin).Item(i).command)) += 1
+                Next
 
-            For i = 0 To voteCat.Count - 1
-                If voteCat(i) > subvoteTally Then
-                    subvoteWin = i
-                    subvoteTally = voteCat(i)
-                End If
-            Next
+                For i = 0 To voteCat.Count - 1
+                    If voteCat(i) > subvoteTally Then
+                        subvoteWin = i
+                        subvoteTally = voteCat(i)
+                    End If
+                Next
 
-            For i = 0 To votes.Count - 1
-                If votes.Item(i).command = cllCll.Item(voteWin)(subvoteWin) Then
-                    subcatVotes.Add(votes.Item(i))
-                End If
-            Next
+                For i = 0 To votes.Count - 1
+                    If votes.Item(i).command = cllCll.Item(voteWin)(subvoteWin) Then
+                        subcatVotes.Add(votes.Item(i))
+                    End If
+                Next
 
-            subcatVotes.Sort(Function(x, y) x.cmdmulti.CompareTo(y.cmdmulti))
+                subcatVotes.Sort(Function(x, y) x.cmdmulti.CompareTo(y.cmdmulti))
 
-            outputChat("Winning command: " & subcatVotes.Item(0).command & " x" & _
-                       subcatVotes.Item(subcatVotes.Count / 2).cmdmulti)
+                txtChat.Text = txtChat.Text & "Votes: " & Environment.NewLine
+                For i = 0 To subcatVotes.Count - 1
+                    txtChat.Text = txtChat.Text & subcatVotes.Item(i).username & " : " & subcatVotes.Item(i).command & _
+                        " " & subcatVotes.Item(i).cmdmulti & Environment.NewLine
+                Next
 
-            For i = 0 To subcatVotes.Item(subcatVotes.Count / 2 - 1).cmdmulti - 1
-                execCMD(subcatVotes.Item(0).command)
-            Next
+                outputChat("Winning command: " & subcatVotes.Item(0).command & " x" & _
+                           subcatVotes.Item(subcatVotes.Count / 2).cmdmulti)
 
-        Else
-            outputChat("No votes.")
-            refTimerVote.Interval = 1000
-        End If
+                For i = 0 To subcatVotes.Item(subcatVotes.Count / 2 - 1).cmdmulti - 1
+                    execCMD(subcatVotes.Item(0).command)
+                Next
 
+            Else
+                outputChat("No votes.")
+                refTimerVote.Interval = 1000
+            End If
+        Catch ex As Exception
+
+        End Try
         votes.Clear()
     End Sub
 
@@ -416,7 +425,19 @@ Public Class DeSCtrl
         Return {Microsoft.VisualBasic.Left(txt, InStr(1, txt, ":") - 1).ToLower, Microsoft.VisualBasic.Right(txt, txt.Length - InStr(1, txt, ":") - 1).ToLower}
     End Function
     Private Sub outputChat(ByVal txt As String)
-        wb.Document.GetElementById("ember651").InnerText = txt
+        'wb.Document.GetElementById("ember651").InnerText = txt
+
+        Dim Elems As HtmlElementCollection
+        Dim elem As HtmlElement
+        Try
+            Elems = wb.Document.GetElementsByTagName("textarea")
+            elem = Elems(0)
+            elem.InnerText = txt
+        Catch ex As Exception
+            txtChat.Text += ex.Message & Environment.NewLine
+        End Try
+
+        'wb.Document.GetElementById("ember668").InnerText = txt
 
         refTimerPost.Interval = 100
         refTimerPost.Enabled = True
@@ -505,6 +526,19 @@ Public Class DeSCtrl
 
         REM PS3Controller ( buttons, R stick left/right, R stick up/down, L stick left/right, L stick up/down, _
         REM                 hold button length)
+        If Four2UInteger(&H2A63A4) = 0 Then
+            outputChat("Disconnection detected.  Attempting reconnect.")
+            If PS3.TMAPI.ConnectTarget(txtPS3IP.Text) Then
+                If PS3.AttachProcess() Then
+                    txtPS3IP.Enabled = False
+                Else
+                    txtPS3IP.Enabled = True
+                End If
+            Else
+                txtPS3IP.Enabled = True
+            End If
+        End If
+
 
         Select Case cmd
             Case "wf"
