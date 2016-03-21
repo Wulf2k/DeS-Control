@@ -52,6 +52,7 @@ Public Class DeSCtrl
 
     Dim collectVotes As Boolean
     Dim lastVoter As String = ""
+    Dim safemode As Boolean = False
 
     Dim DoNotQuitPtr As UInteger = &H386001EC
 
@@ -458,7 +459,8 @@ Public Class DeSCtrl
                         "sel", "start", "tri", "sq", "o", "x", "l3", _
                         "l2", "l1", "r2", "r1", "h", "hh", "fa", "fr1", _
                         "holdo", "holdx", "holdl1", _
-                        "pause", "nopause", "votemode", "novotemode", "delaydn", "delayup"}
+                        "pause", "nopause", "votemode", "novotemode", "delaydn", "delayup", _
+                        "safemodeon", "safemodeoff"}
 
         Dim tmpuser = entry(0)
         Dim tmpcmd = entry(1)
@@ -487,19 +489,16 @@ Public Class DeSCtrl
 
 
         If CllCMDList.Contains(tmpcmd) Then
-
-            If (chkVoting.Checked = False) Or tmpcmd = "delaydn" Or tmpcmd = "delayup" Then
-                'If Not (tmpcmd = "delaydn" Or tmpcmd = "delayup") Then
-                ' If Not tmpuser = lastVoter Then
-                'outputChat("Change in operator detected.  Entering vote mode automatically.")
-                'chkVoting.Checked = Not chkVoting.Checked
-                'Else
-                For i = 0 To CMDmulti - 1
-                    If QueuedInput.Count < 50 Then execCMD(tmpcmd)
-                Next
-                'End If
+            If (chkVoting.Checked = False) Then
+                If safemode And Not tmpuser = lastVoter Then
+                    outputChat("Change in operator detected, and safemode enabled.  Entering vote mode automatically.")
+                    chkVoting.Checked = Not chkVoting.Checked
+                Else
+                    For i = 0 To CMDmulti - 1
+                        If QueuedInput.Count < 50 Then execCMD(tmpcmd)
+                    Next
+                End If
             End If
-            'End If
             If chkVoting.Checked = True Then
                 If collectVotes Then
                     currvote = votes.Find(Function(v As Votes) v.username = tmpuser)
@@ -727,6 +726,10 @@ Public Class DeSCtrl
                 UInteger2Four(pauseModePtr, 0)
                 refTimerVote.Interval = 1000
 
+            Case "safemodeon"
+                safemode = True
+            Case "safemodeoff"
+                safemode = False
             Case "votemode"
                 chkVoting.Checked = True
                 refTimerVote.Interval = 1000
