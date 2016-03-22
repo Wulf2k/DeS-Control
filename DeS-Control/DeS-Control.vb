@@ -42,7 +42,8 @@ Public Class DeSCtrl
     Public Shared PS3 As New PS3API
     Public Shared api As String
 
-    Dim lastEmber As Integer = 711
+    'Dim lastEmber As Integer = 711
+    Dim lastEmber As Integer = 0
 
     'Dim CtrlPtr As UInteger = &H10F3A1A0& - TMAPI?
     'Dim CtrlPtr As UInteger = &H10F3A160& - CCAPI?
@@ -312,7 +313,7 @@ Public Class DeSCtrl
                 cllBtnCMD = {"sq", "tri", "o", "x", "du", "dd", "dl", "dr", "start", "l3", "sel"}
                 cllCombatCMD = {"l1", "l2", "r1", "r2", "fr1", "h", "hh", "fa"}
                 cllToggleCMD = {"holdo", "holdx", "holdl1"}
-                cllSysCMD = {"pause", "nopause", "votemode", "novotemode"}
+                cllSysCMD = {"pause", "nopause", "votemode", "novotemode", "safemodeon", "safemodeoff"}
 
                 cllCll.Add(cllMoveCMD)
                 cllCll.Add(cllRollCMD)
@@ -488,6 +489,8 @@ Public Class DeSCtrl
         End Select
 
 
+
+
         If CllCMDList.Contains(tmpcmd) Then
             If (chkVoting.Checked = False) Then
                 If safemode And Not tmpuser = lastVoter Then
@@ -495,7 +498,13 @@ Public Class DeSCtrl
                     chkVoting.Checked = Not chkVoting.Checked
                 Else
                     For i = 0 To CMDmulti - 1
-                        If QueuedInput.Count < 50 Then execCMD(tmpcmd)
+                        execCMD(tmpcmd)
+                    Next
+                End If
+            Else
+                If (tmpcmd = "delayup") Or (tmpcmd = "delaydn") Then
+                    For i = 0 To CMDmulti - 1
+                        execCMD(tmpcmd)
                     Next
                 End If
             End If
