@@ -427,8 +427,6 @@ Public Class DeSCtrl
         Return {Microsoft.VisualBasic.Left(txt, InStr(1, txt, ":") - 1).ToLower, Microsoft.VisualBasic.Right(txt, txt.Length - InStr(1, txt, ":") - 1).ToLower}
     End Function
     Private Sub outputChat(ByVal txt As String)
-        'wb.Document.GetElementById("ember651").InnerText = txt
-
         Dim Elems As HtmlElementCollection
         Dim elem As HtmlElement
         Try
@@ -438,8 +436,6 @@ Public Class DeSCtrl
         Catch ex As Exception
             txtChat.Text += ex.Message & Environment.NewLine
         End Try
-
-        'wb.Document.GetElementById("ember668").InnerText = txt
 
         refTimerPost.Interval = 100
         refTimerPost.Enabled = True
@@ -640,9 +636,9 @@ Public Class DeSCtrl
                 PS3Controller(&H10000, 0, 0, 0, 0, 2)
                 PS3Controller(0, 0, 0, 0, 0, 2)
             Case "start"
-                PS3Controller(&H80000, 0, 0, 0, 0, 2)
-                PS3Controller(0, 0, 0, 0, 0, 8)
-
+                'PS3Controller(&H80000, 0, 0, 0, 0, 2)
+                'PS3Controller(0, 0, 0, 0, 0, 8)
+                outputChat("Start menu disabled.  Have a pre-approved player use 'openmenu' instead.")
             Case "tri"
                 PS3Controller(&H10, 0, 0, 0, 0, 2)
                 PS3Controller(0, 0, 0, 0, 0, 22)

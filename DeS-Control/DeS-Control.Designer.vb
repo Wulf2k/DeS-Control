@@ -93,7 +93,7 @@ Partial Class DeSCtrl
         Me.txtChat.Multiline = True
         Me.txtChat.Name = "txtChat"
         Me.txtChat.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
-        Me.txtChat.Size = New System.Drawing.Size(391, 448)
+        Me.txtChat.Size = New System.Drawing.Size(205, 448)
         Me.txtChat.TabIndex = 45
         '
         'btnUpdate
@@ -107,11 +107,11 @@ Partial Class DeSCtrl
         '
         'wb
         '
-        Me.wb.Location = New System.Drawing.Point(433, 12)
+        Me.wb.Location = New System.Drawing.Point(255, 167)
         Me.wb.MinimumSize = New System.Drawing.Size(20, 20)
         Me.wb.Name = "wb"
         Me.wb.ScriptErrorsSuppressed = True
-        Me.wb.Size = New System.Drawing.Size(408, 603)
+        Me.wb.Size = New System.Drawing.Size(586, 448)
         Me.wb.TabIndex = 47
         '
         'rbCCAPI
